@@ -2,10 +2,10 @@
   "name": "webrtc.js",
   "version": "0.0.3",
   "repository": {
-    "type": "git", 
-    "url": "git@github.com:henrikjoreteg/webrtc.js.git"
+    "type": "git",
+    "url": "git://github.com/johnhunter/SimpleWebRTC.git"
   },
-  "description": "World's easiest webrtc",
+  "description": "World's easiest webrtc (johnhunter fork)",
   "devDependencies": {
     "request": "",
     "uglify-js": ""
