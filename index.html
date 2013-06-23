@@ -38,27 +38,30 @@
                 localVideoEl: 'localVideo',
                 remoteVideosEl: 'remotes',
                 // immediately ask for camera access
-                autoRequestMedia: true,
+                autoRequestMedia: false,
                 log: true
             });
             webrtc.on('readyToCall', function () {
-                $callControls.show();
+                // have room, socket and localMedia
+                webrtc.joinRoom(room);
             });
 
 
             //setup buttons
             $('#btn-connect').click(function(){
                 webrtc.connect();
+                $callControls.show();
                 return false;
             });
             $('#btn-disconnect').click(function(){
                 webrtc && webrtc.disconnect();
+                $callControls.hide();
                 return false;
             });
             var $callControls = $('.call-controls');
             $('#btn-call').click(function(){
                 if (webrtc.joinRoom && room) {
-                    webrtc.joinRoom(room);
+                    webrtc.startLocalVideo(); // required if autoRequestMedia is false
                 }
                 return false;
             });

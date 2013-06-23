@@ -320,6 +320,7 @@ WebRTC.prototype.disconnect = function () {
     }
     this.connection.emit('disconnect');
     this.sessionReady = false;
+    this.stopLocalVideo();
 
     this.connection.socket.disconnect();
 };
@@ -404,6 +405,11 @@ WebRTC.prototype.startLocalVideo = function (element) {
     });
 };
 
+WebRTC.prototype.stopLocalVideo = function (element) {
+    var localVideoContainer = element || this.getLocalVideoContainer();
+    this.localStream = null;
+    localVideoContainer.src = '';
+};
 
 WebRTC.prototype.send = function (to, type, payload) {
     this.connection.emit('message', {
