@@ -5,36 +5,71 @@
     <body>
         <h1 id="title">Start a room</h1>
         <p id="subTitle"></p>
+
+        <p>
+            <button id="btn-connect">Connect</button>
+            <button id="btn-disconnect">Disconnect</button>
+        </p>
+
         <form id="createRoom">
             <input id="sessionInput"/>
             <button type="submit">Create it!</button>
         </form>
+
+        <div class="call-controls" style="display:none">
+            <button id="btn-call">Call</button>
+            <button id="btn-end">End</button>
+        </div>
+
         <video id="localVideo" style="height: 150px;"></video>
         <div id="remotes"></div>
+
+
+
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-        <script src="http://signaling.simplewebrtc.com:8888/socket.io/socket.io.js"></script>
+        <script src="//localhost:8888/socket.io/socket.io.js"></script>
         <script src="simplewebrtc.js"></script>
         <script>
+            var webrtc;
             // grab the room from the URL
             var room = location.search && location.search.split('?')[1];
 
-            // create our webrtc connection
             var webrtc = new WebRTC({
-                // the id/element dom element that will hold "our" video
                 localVideoEl: 'localVideo',
-                // the id/element dom element that will hold remote videos
                 remoteVideosEl: 'remotes',
                 // immediately ask for camera access
                 autoRequestMedia: true,
                 log: true
             });
-
-            // when it's ready, join if we got a room from the URL
             webrtc.on('readyToCall', function () {
-                // you can name it anything
-                if (room) webrtc.joinRoom(room);
+                $callControls.show();
             });
-            
+
+
+            //setup buttons
+            $('#btn-connect').click(function(){
+                webrtc.connect();
+                return false;
+            });
+            $('#btn-disconnect').click(function(){
+                webrtc && webrtc.disconnect();
+                return false;
+            });
+            var $callControls = $('.call-controls');
+            $('#btn-call').click(function(){
+                if (webrtc.joinRoom && room) {
+                    webrtc.joinRoom(room);
+                }
+                return false;
+            });
+            $('#btn-end').click(function(){
+                if (webrtc.joinRoom && room) {
+                    webrtc.leaveRoom(room);
+                }
+                return false;
+            });
+
+
             // Since we use this twice we put it here
             function setRoom(name) {
                 $('form').remove();
@@ -55,7 +90,7 @@
                             setRoom(name);
                         }
                     });
-                    return false;          
+                    return false;
                 });
             }
         </script>

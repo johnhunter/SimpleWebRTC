@@ -202,10 +202,9 @@ WildEmitter.prototype.getWildcardCallbacks = function (eventName) {
 
 
 function WebRTC(opts) {
-    var self = this,
-        options = opts || {},
+    var options = opts || {},
         config = this.config = {
-            url: 'http://signaling.simplewebrtc.com:8888',
+            url: 'http://localhost:8888',
             log: false,
             localVideoEl: '',
             remoteVideosEl: '',
@@ -225,8 +224,7 @@ function WebRTC(opts) {
                 }
             }
         },
-        item,
-        connection;
+        item;
 
     // check for support
     if (!webRTCSupport) {
@@ -243,6 +241,34 @@ function WebRTC(opts) {
 
     // where we'll store our peer connections
     this.pcs = {};
+    this.connection = null;
+
+    WildEmitter.call(this);
+
+    // log events
+    this.on('*', function (event, val1, val2) {
+        logger.log('event:', event, val1, val2);
+    });
+
+    // auto request if configured
+    if (this.config.autoRequestMedia) this.startLocalVideo();
+}
+
+WebRTC.prototype = Object.create(WildEmitter.prototype, {
+    constructor: {
+        value: WebRTC
+    }
+});
+
+WebRTC.prototype.connect = function () {
+    var self = this,
+        connection;
+    this.pcs = {};
+
+    if (this.connection) {
+        this.reconnect();
+        return;
+    }
 
     // our socket.io connection
     connection = this.connection = io.connect(this.config.url);
@@ -278,23 +304,25 @@ function WebRTC(opts) {
         var conv = self.pcs[room.id];
         if (conv) conv.handleStreamRemoved();
     });
+};
 
-    WildEmitter.call(this);
-
-    // log events
-    this.on('*', function (event, val1, val2) {
-        logger.log('event:', event, val1, val2);
-    });
-
-    // auto request if configured
-    if (this.config.autoRequestMedia) this.startLocalVideo();
-}
-
-WebRTC.prototype = Object.create(WildEmitter.prototype, {
-    constructor: {
-        value: WebRTC
+WebRTC.prototype.reconnect = function() {
+    if (this.connection && !this.connection.socket.connected) {
+        this.connection.socket.reconnect();
     }
-});
+};
+
+WebRTC.prototype.disconnect = function () {
+    if (!this.connection) return false;
+    // kill all the pcs objects
+    for (var pc in this.pcs) {
+        this.pcs[pc].end();
+    }
+    this.connection.emit('disconnect');
+    this.sessionReady = false;
+
+    this.connection.socket.disconnect();
+};
 
 WebRTC.prototype.getEl = function (idOrEl) {
     if (typeof idOrEl == 'string') {
